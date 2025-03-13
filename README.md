@@ -66,7 +66,7 @@ GET http://127.0.0.1:8000/api/v1/posts/
 
 ### Создание нового поста
 ```bash
-POST http://127.0.0.1:8000/api/v1/posts/ -H "Authorization: Bearer <your_token>" -H "Content-Type: application/json" -d '{"text": "Новый пост", "group": 1}'
+POST -X http://127.0.0.1:8000/api/v1/posts/ -H "Authorization: Bearer <your_token>" -H "Content-Type: application/json" -d '{"text": "Новый пост", "group": 1}'
 ```
 
 ### Получение списка комментариев
