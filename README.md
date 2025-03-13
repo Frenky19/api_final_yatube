@@ -54,7 +54,7 @@ REST API для социальной сети блогов с возможнос
 
 ## Использование
 
-После запуска сервера, API будет доступен по адресу `http://127.0.0.1:8000/api/v1/`. Вы можете использовать инструменты, такие как Postman, для взаимодействия с API.
+После запуска сервера, API будет доступен по адресу `http://127.0.0.1:8000/api/v1/`. Можно использовать инструменты, такие как Postman, для взаимодействия с API.
 
 ## Примеры запросов
 
@@ -66,7 +66,7 @@ GET http://127.0.0.1:8000/api/v1/posts/
 
 ### Создание нового поста
 ```bash
-POST -X http://127.0.0.1:8000/api/v1/posts/ -H "Authorization: Bearer <your_token>" -H "Content-Type: application/json" -d '{"text": "Новый пост", "group": 1}'
+POST http://127.0.0.1:8000/api/v1/posts/
 ```
 
 ### Получение списка комментариев
@@ -76,12 +76,11 @@ GET http://127.0.0.1:8000/api/v1/posts/1/comments/
 
 ### Создание нового комментария
 ```bash
-POST http://127.0.0.1:8000/api/v1/posts/1/comments/ -H "Authorization: Bearer <your_token>" -H "Content-Type: application/json" -d '{"text": "Новый комментарий"}'
+POST http://127.0.0.1:8000/api/v1/posts/1/comments/
 ```
 
 ### Авторизация
 Для авторизации используется JWT (JSON Web Token). Получить токен можно, отправив POST-запрос на /api/v1/jwt/create/ с данными пользователя.
 ```bash
-POST http://127.0.0.1:8000/api/v1/jwt/create/ -H "Content-Type: application/json" -d '{"username": "your_username", "password": "your_password"}'
+POST http://127.0.0.1:8000/api/v1/jwt/create/
 ```
-
