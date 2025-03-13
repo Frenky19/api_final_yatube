@@ -15,5 +15,5 @@ REST API для социальной сети блогов с возможнос
 1. Клонировать репозиторий и перейти в него в командной строке:
 ```bash
 git clone https://github.com/frenky19/api_final_yatube.git
-
+```bash
 cd yatube_api
