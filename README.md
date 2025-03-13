@@ -15,5 +15,24 @@ REST API для социальной сети блогов с возможнос
 1. Клонировать репозиторий и перейти в него в командной строке:
 ```bash
 git clone https://github.com/frenky19/api_final_yatube.git
-```bash
+
 cd yatube_api
+
+2. Cоздать и активировать виртуальное окружение:
+python -m venv env
+
+source env/bin/activate (Linux)
+source env/scripts/activate (Windows)
+
+3. Установить зависимости:
+python -m pip install --upgrade pip
+
+pip install -r requirements.txt
+
+4. Выполнить миграции:
+python manage.py migrate
+
+5. Запустить проект:
+python3 manage.py runserver
+
+
