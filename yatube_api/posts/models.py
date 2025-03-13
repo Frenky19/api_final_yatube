@@ -99,6 +99,26 @@ class Comment(models.Model):
 
 
 class Follow(models.Model):
+    """
+    Модель для хранения подписок пользователя.
+
+    Поля:
+    - user (ForeignKey): Пользователь, который подписывается (подписчик).
+                        Связан с моделью User через ForeignKey.
+    - following (ForeignKey): Пользователь, на которого подписываются.
+                            Связан с моделью User через ForeignKey.
+
+    Ограничения:
+    - Уникальная пара (user, following) через unique_together,
+      чтобы предотвратить дублирование подписок.
+
+    Связанные имена:
+    - related_name='follower': Для доступа к подпискам пользователя через
+      User.follower.
+    - related_name='following': Для доступа к подписчикам пользователя через
+      User.following.
+    """
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

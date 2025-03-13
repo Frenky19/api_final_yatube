@@ -66,14 +66,26 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     """
+    Сериализатор для создания и валидации подписок между пользователями.
 
+    Поля:
+    - user (slug): Имя пользователя, который подписывается. Автоматически
+      устанавливается как текущий аутентифицированного пользователя.
+      Только для чтения.
+    - following (slug): Имя пользователя, на которого происходит подписка.
+                        Должно существовать в системе.
+
+    Валидация:
+    - Запрещена подписка на самого себя
+      (проверка в методе 'validate_following').
+    - Запрещены дублирующиеся подписки (валидатор UniqueTogetherValidator).
     """
+
     user = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
-
     following = serializers.SlugRelatedField(
         slug_field='username',
         queryset=User.objects.all()
@@ -89,3 +101,20 @@ class FollowSerializer(serializers.ModelSerializer):
                 message='Вы уже подписаны на этого пользователя'
             )
         ]
+
+    def validate_following(self, data):
+        """
+        Проверяет, что пользователь не пытается подписаться на самого себя.
+
+        Аргументы:
+            data (User): Объект пользователя, полученный из slug 'username'.
+        Исключения:
+            ValidationError: Если текущий пользователь совпадает с following.
+        Возвращает:
+            User: Валидный объект пользователя для подписки.
+        """
+        if data == self.context['request'].user:
+            raise serializers.ValidationError(
+                "Нельзя подписаться на самого себя!"
+            )
+        return data

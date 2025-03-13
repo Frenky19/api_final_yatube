@@ -1,20 +1,21 @@
-from rest_framework import viewsets, serializers
-from posts.models import Post, Group, Follow
-from api.serializers import (
-    PostSerializer,
-    CommentSerializer,
-    GroupSerializer,
-    FollowSerializer
-)
-from rest_framework import filters
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly, IsAuthenticated
-)
-from api.permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
+from rest_framework import filters, viewsets
+from rest_framework.permissions import (
+    IsAuthenticated, IsAuthenticatedOrReadOnly
+)
+
+from api.mixins import PaginationMixin
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (
+    CommentSerializer,
+    FollowSerializer,
+    GroupSerializer,
+    PostSerializer
+)
+from posts.models import Follow, Group, Post
 
 
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(PaginationMixin, viewsets.ModelViewSet):
     """
     ViewSet для работы с постами.
 
@@ -39,7 +40,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(PaginationMixin, viewsets.ModelViewSet):
     """
     ViewSet для работы с комментариями.
 
@@ -81,7 +82,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
-class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+class GroupViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet для работы с группами.
 
@@ -92,24 +93,36 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(PaginationMixin, viewsets.ModelViewSet):
+    """
+    ViewSet для управления подписками пользователя.
+
+    Предоставляет следующие действия:
+    - 'list' — получение списка своих подписок (GET /api/v1/follow/).
+    - 'create' — подписка на другого пользователя (POST /api/v1/follow/).
+    - 'retrieve' — просмотр конкретной подписки (GET /api/v1/follow/{id}/).
+    - 'destroy' — отмена подписки (DELETE /api/v1/follow/{id}/).
+
+    Особенности:
+    - Требует аутентификации пользователя.
+    - Автоматически привязывает подписку к текущему пользователю при создании.
+    - Запрещает подписку на самого себя (возвращает 400 Bad Request).
+    - Поиск по username пользователя через параметр 'search':
+      /api/v1/follow/?search=username.
+
+    Фильтрация:
+    - Поиск по полю 'following__username' через SearchFilter.
     """
 
-    """
     serializer_class = FollowSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['following__username']
 
-    def validate_following(self, data):
-        if data == self.context['request'].user:
-            raise serializers.ValidationError(
-                "Нельзя подписаться на самого себя!"
-            )
-        return data
-
     def get_queryset(self):
+        """Возвращает только подписки текущего пользователя."""
         return Follow.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        """Автоматически назначает текущего пользователя как подписчика."""
         serializer.save(user=self.request.user)
