@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets
+from rest_framework import filters, mixins, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticated, IsAuthenticatedOrReadOnly
 )
 
-from api.mixins import PaginationMixin
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     CommentSerializer,
@@ -12,10 +12,10 @@ from api.serializers import (
     GroupSerializer,
     PostSerializer
 )
-from posts.models import Follow, Group, Post
+from posts.models import Group, Post
 
 
-class PostViewSet(PaginationMixin, viewsets.ModelViewSet):
+class PostViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с постами.
 
@@ -26,6 +26,7 @@ class PostViewSet(PaginationMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         """
@@ -40,7 +41,7 @@ class PostViewSet(PaginationMixin, viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class CommentViewSet(PaginationMixin, viewsets.ModelViewSet):
+class CommentViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с комментариями.
 
@@ -82,7 +83,7 @@ class CommentViewSet(PaginationMixin, viewsets.ModelViewSet):
         )
 
 
-class GroupViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet для работы с группами.
 
@@ -93,15 +94,17 @@ class GroupViewSet(PaginationMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class FollowViewSet(PaginationMixin, viewsets.ModelViewSet):
+class FollowViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     """
     ViewSet для управления подписками пользователя.
 
     Предоставляет следующие действия:
     - 'list' — получение списка своих подписок (GET /api/v1/follow/).
     - 'create' — подписка на другого пользователя (POST /api/v1/follow/).
-    - 'retrieve' — просмотр конкретной подписки (GET /api/v1/follow/{id}/).
-    - 'destroy' — отмена подписки (DELETE /api/v1/follow/{id}/).
 
     Особенности:
     - Требует аутентификации пользователя.
@@ -121,7 +124,7 @@ class FollowViewSet(PaginationMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возвращает только подписки текущего пользователя."""
-        return Follow.objects.filter(user=self.request.user)
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
         """Автоматически назначает текущего пользователя как подписчика."""
