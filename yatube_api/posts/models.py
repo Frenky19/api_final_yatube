@@ -58,6 +58,7 @@ class Post(models.Model):
 
     class Meta:
         default_related_name = '%(class)ss'
+        ordering = ['-pub_date']
 
     def __str__(self):
         return Truncator(self.text).chars(LIMIT_OF_SYMBOLS)
@@ -133,4 +134,19 @@ class Follow(models.Model):
     )
 
     class Meta:
-        unique_together = ['user', 'following']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
+
+    def __str__(self):
+        sliced_user = Truncator(self.user.username).chars(LIMIT_OF_SYMBOLS)
+        sliced_following = Truncator(self.following.username).chars(
+            LIMIT_OF_SYMBOLS
+        )
+        return (
+            f'Пользователь {sliced_user} подписан на пользователя'
+            f': {sliced_following}'
+        )
