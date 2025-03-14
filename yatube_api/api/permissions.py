@@ -26,6 +26,8 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
         Возвращает:
             bool: True, если доступ разрешён, иначе False.
         """
-        if request.method in permissions.SAFE_METHODS:
+        if (
+            request.method in permissions.SAFE_METHODS
+            or obj.author == request.user
+        ):
             return True
-        return obj.author == request.user
